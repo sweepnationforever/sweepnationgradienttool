@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,7 +20,7 @@
         .container {
             position: relative;
             background-color: #1e1e1e;
-            padding: 40px; /* Increased padding */
+            padding: 40px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
             width: 80%;
@@ -44,11 +43,10 @@
             margin-bottom: 15px;
         }
 
-        /* Style for color picker and hex input */
         .color-input-group {
             display: flex;
             align-items: center;
-            margin-bottom: 10px; /* Reduced margin */
+            margin-bottom: 10px;
         }
 
         .color-input-group>* {
@@ -57,17 +55,14 @@
 
 
         input[type="color"] {
-            border: 1px solid #444; /* Dark outline */
+            border: 1px solid #444;
             border-radius: 6px;
             width: 45px;
             height: 35px;
             padding: 0;
             cursor: pointer;
             margin-right: 5px;
-            /* Add margin here */
             flex-shrink: 0;
-            /* Prevent shrinking */
-
         }
 
         input[type="color"]::-webkit-color-swatch-wrapper {
@@ -91,8 +86,6 @@
             color: #fff;
             box-sizing: border-box;
             width: 100%;
-            /* Full width */
-
         }
 
         #leftColorHex,
@@ -104,14 +97,12 @@
             width: 100%;
             width: 99.1%;
             margin-bottom: 20px;
-            /* Add margin below the input text */
         }
 
         #gradientOutput {
             width: 98.8%;
             margin-top: 20px;
             padding: 0;
-            /* Remove padding */
             background-color: #2a2a2a;
             border: 1px solid #444;
             border-radius: 4px;
@@ -120,26 +111,20 @@
             position: relative;
             min-height: 40px;
             display: flex;
-            /* Use flexbox */
             align-items: stretch;
-            /* Stretch items vertically */
         }
 
         #gradientOutputText {
             padding: 10px;
             flex-grow: 1;
             overflow-x: auto;
-            /* Allow horizontal scrolling */
             white-space: pre;
-            /*Keep spaces and line breaks*/
-            /* Hide scrollbar */
             scrollbar-width: none;
-            /* Firefox */
             -ms-overflow-style: none;
-            /* IE and Edge */
+
         }
 
-        /* Hide scrollbar for Chrome, Safari, and Opera */
+
         #gradientOutputText::-webkit-scrollbar {
             display: none;
         }
@@ -151,30 +136,24 @@
             font-size: 1.5em;
         }
 
-
         .copy-button {
             margin: 3px;
             background-color: #3b3b3b;
             color: white;
             border: none;
             padding: 8px;
-            /* Add some padding */
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.8em;
-            /* Larger font size */
             z-index: 2;
             flex-shrink: 0;
-            /* Prevent shrinking */
             width: auto;
-            /* Allow width to adjust */
         }
 
         .copy-button:hover {
             background-color: #454545;
         }
 
-        /* Remove labels */
         .input-group label {
             display: none;
         }
@@ -188,7 +167,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <h1>sweepnation gradient tool</h1>
@@ -268,7 +246,7 @@
             }
 
             previewDiv.innerHTML = previewHTML;
-            gradientOutputText.textContent = gradientText; // Set textContent here
+            gradientOutputText.textContent = gradientText;
         }
 
 
@@ -330,8 +308,7 @@
                 });
         });
 
-        updateGradient(); // Initial update
+        updateGradient();
     </script>
 </body>
-
 </html>
