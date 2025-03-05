@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sweepnation gradient tool</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            position: relative;
+            background-color: #1e1e1e;
+            padding: 40px; /* Increased padding */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 600px;
+            z-index: 1;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2em;
+            font-family: sans-serif;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        /* Style for color picker and hex input */
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px; /* Reduced margin */
+        }
+
+        .color-input-group>* {
+            margin-right: 5px;
+        }
+
+
+        input[type="color"] {
+            border-radius: 6px;
+            width: 45px;
+            height: 35px;
+            padding: 0;
+            cursor: pointer;
+            margin-right: 5px;
+            /* Add margin here */
+            flex-shrink: 0;
+            /* Prevent shrinking */
+
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #2a2a2a;
+            color: #fff;
+            box-sizing: border-box;
+            width: 100%;
+            /* Full width */
+
+        }
+
+        #leftColorHex,
+        #rightColorHex {
+            flex-grow: 1;
+        }
+
+        #inputText {
+            width: 100%;
+            width: 99.1%;
+            margin-bottom: 20px;
+            /* Add margin below the input text */
+        }
+
+        #gradientOutput {
+            width: 98.8%;
+            margin-top: 20px;
+            padding: 0;
+            /* Remove padding */
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            overflow-wrap: break-word;
+            font-family: monospace;
+            position: relative;
+            min-height: 40px;
+            display: flex;
+            /* Use flexbox */
+            align-items: stretch;
+            /* Stretch items vertically */
+        }
+
+        #gradientOutputText {
+            padding: 10px;
+            flex-grow: 1;
+            overflow-x: auto;
+            /* Allow horizontal scrolling */
+            white-space: pre;
+            /*Keep spaces and line breaks*/
+            /* Hide scrollbar */
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE and Edge */
+        }
+
+        /* Hide scrollbar for Chrome, Safari, and Opera */
+        #gradientOutputText::-webkit-scrollbar {
+            display: none;
+        }
+
+
+        .preview {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+
+        .copy-button {
+            margin: 3px;
+            background-color: #3b3b3b;
+            color: white;
+            border: none;
+            padding: 8px;
+            /* Add some padding */
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            /* Larger font size */
+            z-index: 2;
+            flex-shrink: 0;
+            /* Prevent shrinking */
+            width: auto;
+            /* Allow width to adjust */
+        }
+
+        .copy-button:hover {
+            background-color: #454545;
+        }
+
+        /* Remove labels */
+        .input-group label {
+            display: none;
+        }
+
+        .footer-text {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>sweepnation gradient tool</h1>
+
+        <div class="color-input-group">
+            <input type="color" id="leftColor" value="#85A7FF">
+            <input type="text" id="leftColorHex" value="85A7FFFF" maxlength="8">
+        </div>
+
+        <div class="color-input-group">
+            <input type="color" id="rightColor" value="#FFA1A1">
+            <input type="text" id="rightColorHex" value="FFA1A1FF" maxlength="8">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="inputText" placeholder="enter text here">
+        </div>
+
+        <div class="preview" id="preview"></div>
+
+        <div id="gradientOutput">
+            <div id="gradientOutputText"></div>
+            <button class="copy-button">ctrl + c</button>
+        </div>
+        <div class="footer-text">made with ❤️ for us 🤭</div>
+    </div>
+
+    <script>
+        const leftColorPicker = document.getElementById('leftColor');
+        const leftColorHexInput = document.getElementById('leftColorHex');
+        const rightColorPicker = document.getElementById('rightColor');
+        const rightColorHexInput = document.getElementById('rightColorHex');
+        const inputText = document.getElementById('inputText');
+        const gradientOutputText = document.getElementById('gradientOutputText');
+        const previewDiv = document.getElementById('preview');
+        const copyButton = document.querySelector('.copy-button');
+
+        function componentToHex(c) {
+            const hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+        function rgbToHex(r, g, b) {
+            return componentToHex(r) + componentToHex(g) + componentToHex(b);
+        }
+
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function updateGradient() {
+            const leftColor = leftColorHexInput.value;
+            const rightColor = rightColorHexInput.value;
+            const text = inputText.value;
+
+            let gradientText = '';
+            let previewHTML = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const ratio = i / (text.length - 1);
+
+                const left = leftColor.length === 8 ? leftColor : leftColor + "FF";
+                const right = rightColor.length === 8 ? rightColor : rightColor + "FF";
+
+                const r = Math.round(parseInt(left.substring(0, 2), 16) * (1 - ratio) + parseInt(right.substring(0, 2), 16) * ratio);
+                const g = Math.round(parseInt(left.substring(2, 4), 16) * (1 - ratio) + parseInt(right.substring(2, 4), 16) * ratio);
+                const b = Math.round(parseInt(left.substring(4, 6), 16) * (1 - ratio) + parseInt(right.substring(4, 6), 16) * ratio);
+                const a = Math.round(parseInt(left.substring(6, 8), 16) * (1 - ratio) + parseInt(right.substring(6, 8), 16) * ratio);
+
+                const hexColor = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
+                gradientText += `\\f${hexColor}${text[i]}`;
+                previewHTML += `<span style="color: #${rgbToHex(r, g, b)}">${text[i]}</span>`;
+            }
+
+            previewDiv.innerHTML = previewHTML;
+            gradientOutputText.textContent = gradientText; // Set textContent here
+        }
+
+
+        leftColorPicker.addEventListener('input', () => {
+            const hexValue = leftColorPicker.value.substring(1).toUpperCase() + "FF";
+            leftColorHexInput.value = hexValue;
+            updateGradient();
+        });
+
+        rightColorPicker.addEventListener('input', () => {
+            const hexValue = rightColorPicker.value.substring(1).toUpperCase() + "FF";
+            rightColorHexInput.value = hexValue;
+            updateGradient();
+        });
+
+
+        leftColorHexInput.addEventListener('input', () => {
+            let val = leftColorHexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+            if (val.length > 8) {
+                val = val.substring(0, 8);
+            }
+            leftColorHexInput.value = val;
+
+            const rgb = hexToRgb("#" + val.substring(0, 6));
+            if (rgb) {
+                leftColorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
+            }
+            updateGradient();
+
+        });
+
+        rightColorHexInput.addEventListener('input', () => {
+            let val = rightColorHexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+            if (val.length > 8) {
+                val = val.substring(0, 8);
+            }
+            rightColorHexInput.value = val;
+            const rgb = hexToRgb("#" + val.substring(0, 6));
+            if (rgb) {
+                rightColorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
+            }
+            updateGradient();
+        });
+
+        inputText.addEventListener('input', updateGradient);
+
+        copyButton.addEventListener('click', () => {
+            const textToCopy = gradientOutputText.textContent.trim();
+            if (!textToCopy) return;
+
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    copyButton.textContent = 'copied!';
+                    setTimeout(() => copyButton.textContent = 'ctrl + c', 2000);
+                })
+                .catch(err => {
+                    console.error('failed to copy: ', err);
+                    alert('failed to copy text to clipboard.');
+                });
+        });
+
+        updateGradient(); // Initial update
+    </script>
+</body>
+
+</html>
