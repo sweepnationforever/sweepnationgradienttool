@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="dark">
     <title>sweepnation gradient tool</title>
     <style>
+        /* (Styles remain the same as in previous versions) */
         body {
             font-family: sans-serif;
             background-color: #121212;
@@ -204,17 +205,8 @@
         </div>
 
         <div id="colorInputs">
-            <div class="color-input-group">
-                <input type="color" id="leftColor" value="#85A7FF">
-                <input type="text" class = "color-hex-input" id="leftColorHex" value="85A7FFFF" maxlength="8">
-            </div>
-
-            <div class="color-input-group">
-                <input type="color" id="rightColor" value="#FFA1A1">
-                <input type="text" class = "color-hex-input" id="rightColorHex" value="FFA1A1FF" maxlength="8">
-            </div>
+            <!-- Color inputs will be dynamically generated here -->
         </div>
-        
 
         <div class="input-group">
             <input type="text" id="inputText" placeholder="enter text here">
@@ -257,20 +249,28 @@
             } : null;
         }
 
+        function generateRandomHexColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
 
-        function createColorInputGroup(index) {
+      function createColorInputGroup(index, color = null) {
             const colorInputGroup = document.createElement('div');
             colorInputGroup.classList.add('color-input-group');
 
             const colorPicker = document.createElement('input');
             colorPicker.type = 'color';
             colorPicker.id = `color${index}`;
-            colorPicker.value = index === 0 ? "#85A7FF" : (index === 1 ? "#FFA1A1" : "#ffffff"); // Default colors
+            colorPicker.value = color || generateRandomHexColor(); // Use provided color or generate a random one
             colorPicker.addEventListener('input', () => {
-              const hexValue = colorPicker.value.substring(1).toUpperCase() + "FF";
-              document.getElementById(`colorHex${index}`).value = hexValue;
+                const hexValue = colorPicker.value.substring(1).toUpperCase() + "FF";
+                document.getElementById(`colorHex${index}`).value = hexValue;
                 updateGradient();
-            })
+            });
 
             const hexInput = document.createElement('input');
             hexInput.type = 'text';
@@ -279,30 +279,51 @@
             hexInput.value = colorPicker.value.substring(1).toUpperCase() + "FF";
             hexInput.maxLength = 8;
             hexInput.addEventListener('input', () => {
-              let val = hexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
-              if (val.length > 8) {
-                val = val.substring(0, 8);
-              }
-              hexInput.value = val;
-              const rgb = hexToRgb("#" + val.substring(0, 6));
-              if (rgb) {
-                colorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
-              }
+                let val = hexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+                if (val.length > 8) {
+                    val = val.substring(0, 8);
+                }
+                hexInput.value = val;
+                const rgb = hexToRgb("#" + val.substring(0, 6));
+                if (rgb) {
+                    colorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
+                }
                 updateGradient();
-            })
-
+            });
 
             colorInputGroup.appendChild(colorPicker);
             colorInputGroup.appendChild(hexInput);
             return colorInputGroup;
         }
 
+
         function updateColorInputs() {
-            colorInputsContainer.innerHTML = '';
-            for (let i = 0; i < gradientCount; i++) {
-                colorInputsContainer.appendChild(createColorInputGroup(i));
+            const existingColors = [];
+            // Get existing colors *before* clearing, but only if there are existing inputs.
+            if (colorInputsContainer.children.length > 0) {
+              for (let i = 0; i < colorInputsContainer.children.length; i++) {
+                existingColors.push(document.getElementById(`color${i}`).value);
+              }
             }
+            
+
+            colorInputsContainer.innerHTML = ''; // Clear existing inputs
+
+            //re add the inputs with their saved colours
+            for (let i = 0; i < gradientCount; i++) {
+                let color = null;
+                if(i < existingColors.length){
+                  color = existingColors[i]
+                } else if (i === 0){
+                  color = "#85A7FF"
+                } else if (i === 1){
+                  color = "#FFA1A1"
+                }
+                colorInputsContainer.appendChild(createColorInputGroup(i, color));
+            }
+            updateGradient(); // Update gradient after adding inputs
         }
+
 
         function updateGradient() {
             const text = inputText.value;
@@ -328,12 +349,10 @@
                     aTotal += parseInt(color.substring(6, 8), 16) * weight;
                 }
 
-              
                 const r = Math.round(rTotal);
                 const g = Math.round(gTotal);
                 const b = Math.round(bTotal);
                 const a = Math.round(aTotal);
-
 
                 const hexColor = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
                 gradientText += `\\f${hexColor}${text[i]}`;
@@ -343,9 +362,8 @@
             previewDiv.innerHTML = previewHTML;
             gradientOutputText.textContent = gradientText;
         }
-
-
-        function getGradientWeight(index, overallRatio) {
+      
+      function getGradientWeight(index, overallRatio) {
             // Linear interpolation between gradient points.
             const segmentWidth = 1 / (gradientCount - 1);
             const point = index * segmentWidth;
@@ -365,16 +383,13 @@
               return 1- (overallRatio - point)/segmentWidth
             }
             return 0;
-
-
         }
-
 
         addGradientButton.addEventListener('click', () => {
             gradientCount++;
             gradientCountSpan.textContent = gradientCount;
             updateColorInputs();
-            updateGradient();
+
         });
 
         removeGradientButton.addEventListener('click', () => {
@@ -382,7 +397,6 @@
                 gradientCount--;
                 gradientCountSpan.textContent = gradientCount;
                 updateColorInputs();
-                updateGradient();
             }
         });
 
@@ -402,9 +416,10 @@
                     alert('failed to copy text to clipboard.');
                 });
         });
-
+          // Initialize with 2 gradients
         updateColorInputs();
-        updateGradient(); // Initial gradient
+
+
     </script>
 </body>
 </html>
