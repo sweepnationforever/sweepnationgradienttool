@@ -91,6 +91,9 @@
         #rightColorHex {
             flex-grow: 1;
         }
+        .color-hex-input{
+              flex-grow: 1;
+        }
 
         #inputText {
             width: 100%;
@@ -164,21 +167,54 @@
             font-size: 0.8em;
             color: #aaa;
         }
+
+        .gradient-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .gradient-controls button {
+            background-color: #3b3b3b;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 0 5px;
+        }
+        .gradient-controls button:hover{
+          background-color: #454545;
+        }
+
+        .gradient-controls span {
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>sweepnation gradient tool</h1>
 
-        <div class="color-input-group">
-            <input type="color" id="leftColor" value="#85A7FF">
-            <input type="text" id="leftColorHex" value="85A7FFFF" maxlength="8">
+        <div class="gradient-controls">
+            <button id="removeGradient">-</button>
+            <span id="gradientCount">2</span>
+            <button id="addGradient">+</button>
         </div>
 
-        <div class="color-input-group">
-            <input type="color" id="rightColor" value="#FFA1A1">
-            <input type="text" id="rightColorHex" value="FFA1A1FF" maxlength="8">
+        <div id="colorInputs">
+            <div class="color-input-group">
+                <input type="color" id="leftColor" value="#85A7FF">
+                <input type="text" class = "color-hex-input" id="leftColorHex" value="85A7FFFF" maxlength="8">
+            </div>
+
+            <div class="color-input-group">
+                <input type="color" id="rightColor" value="#FFA1A1">
+                <input type="text" class = "color-hex-input" id="rightColorHex" value="FFA1A1FF" maxlength="8">
+            </div>
         </div>
+        
 
         <div class="input-group">
             <input type="text" id="inputText" placeholder="enter text here">
@@ -194,14 +230,15 @@
     </div>
 
     <script>
-        const leftColorPicker = document.getElementById('leftColor');
-        const leftColorHexInput = document.getElementById('leftColorHex');
-        const rightColorPicker = document.getElementById('rightColor');
-        const rightColorHexInput = document.getElementById('rightColorHex');
+        const colorInputsContainer = document.getElementById('colorInputs');
+        const addGradientButton = document.getElementById('addGradient');
+        const removeGradientButton = document.getElementById('removeGradient');
+        const gradientCountSpan = document.getElementById('gradientCount');
         const inputText = document.getElementById('inputText');
         const gradientOutputText = document.getElementById('gradientOutputText');
         const previewDiv = document.getElementById('preview');
         const copyButton = document.querySelector('.copy-button');
+        let gradientCount = 2;
 
         function componentToHex(c) {
             const hex = c.toString(16);
@@ -220,24 +257,83 @@
             } : null;
         }
 
-        function updateGradient() {
-            const leftColor = leftColorHexInput.value;
-            const rightColor = rightColorHexInput.value;
-            const text = inputText.value;
 
+        function createColorInputGroup(index) {
+            const colorInputGroup = document.createElement('div');
+            colorInputGroup.classList.add('color-input-group');
+
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.id = `color${index}`;
+            colorPicker.value = index === 0 ? "#85A7FF" : (index === 1 ? "#FFA1A1" : "#ffffff"); // Default colors
+            colorPicker.addEventListener('input', () => {
+              const hexValue = colorPicker.value.substring(1).toUpperCase() + "FF";
+              document.getElementById(`colorHex${index}`).value = hexValue;
+                updateGradient();
+            })
+
+            const hexInput = document.createElement('input');
+            hexInput.type = 'text';
+            hexInput.id = `colorHex${index}`;
+            hexInput.classList.add('color-hex-input');
+            hexInput.value = colorPicker.value.substring(1).toUpperCase() + "FF";
+            hexInput.maxLength = 8;
+            hexInput.addEventListener('input', () => {
+              let val = hexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
+              if (val.length > 8) {
+                val = val.substring(0, 8);
+              }
+              hexInput.value = val;
+              const rgb = hexToRgb("#" + val.substring(0, 6));
+              if (rgb) {
+                colorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
+              }
+                updateGradient();
+            })
+
+
+            colorInputGroup.appendChild(colorPicker);
+            colorInputGroup.appendChild(hexInput);
+            return colorInputGroup;
+        }
+
+        function updateColorInputs() {
+            colorInputsContainer.innerHTML = '';
+            for (let i = 0; i < gradientCount; i++) {
+                colorInputsContainer.appendChild(createColorInputGroup(i));
+            }
+        }
+
+        function updateGradient() {
+            const text = inputText.value;
             let gradientText = '';
             let previewHTML = '';
 
             for (let i = 0; i < text.length; i++) {
-                const ratio = i / (text.length - 1);
+                const overallRatio = i / (text.length - 1);
 
-                const left = leftColor.length === 8 ? leftColor : leftColor + "FF";
-                const right = rightColor.length === 8 ? rightColor : rightColor + "FF";
+                let rTotal = 0, gTotal = 0, bTotal = 0, aTotal = 0;
 
-                const r = Math.round(parseInt(left.substring(0, 2), 16) * (1 - ratio) + parseInt(right.substring(0, 2), 16) * ratio);
-                const g = Math.round(parseInt(left.substring(2, 4), 16) * (1 - ratio) + parseInt(right.substring(2, 4), 16) * ratio);
-                const b = Math.round(parseInt(left.substring(4, 6), 16) * (1 - ratio) + parseInt(right.substring(4, 6), 16) * ratio);
-                const a = Math.round(parseInt(left.substring(6, 8), 16) * (1 - ratio) + parseInt(right.substring(6, 8), 16) * ratio);
+                for (let j = 0; j < gradientCount; j++) {
+                    const colorHexInput = document.getElementById(`colorHex${j}`);
+                    let color = colorHexInput.value;
+
+                    color = color.length === 8 ? color : color + "FF";
+
+                    const weight = getGradientWeight(j, overallRatio);
+
+                    rTotal += parseInt(color.substring(0, 2), 16) * weight;
+                    gTotal += parseInt(color.substring(2, 4), 16) * weight;
+                    bTotal += parseInt(color.substring(4, 6), 16) * weight;
+                    aTotal += parseInt(color.substring(6, 8), 16) * weight;
+                }
+
+              
+                const r = Math.round(rTotal);
+                const g = Math.round(gTotal);
+                const b = Math.round(bTotal);
+                const a = Math.round(aTotal);
+
 
                 const hexColor = `${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}${a.toString(16).padStart(2, '0')}`;
                 gradientText += `\\f${hexColor}${text[i]}`;
@@ -249,45 +345,45 @@
         }
 
 
-        leftColorPicker.addEventListener('input', () => {
-            const hexValue = leftColorPicker.value.substring(1).toUpperCase() + "FF";
-            leftColorHexInput.value = hexValue;
+        function getGradientWeight(index, overallRatio) {
+            // Linear interpolation between gradient points.
+            const segmentWidth = 1 / (gradientCount - 1);
+            const point = index * segmentWidth;
+
+          
+            const leftBoundary = Math.max(0, (index-1) * segmentWidth);
+            const rightBoundary = Math.min(1, (index + 1) * segmentWidth);
+
+
+            if(overallRatio < leftBoundary){
+              return 0;
+            } else if (overallRatio > rightBoundary){
+              return 0;
+            } else if (overallRatio >= point - segmentWidth && overallRatio <= point){
+              return 1 - (point - overallRatio)/segmentWidth
+            }else if (overallRatio > point && overallRatio <= point + segmentWidth){
+              return 1- (overallRatio - point)/segmentWidth
+            }
+            return 0;
+
+
+        }
+
+
+        addGradientButton.addEventListener('click', () => {
+            gradientCount++;
+            gradientCountSpan.textContent = gradientCount;
+            updateColorInputs();
             updateGradient();
         });
 
-        rightColorPicker.addEventListener('input', () => {
-            const hexValue = rightColorPicker.value.substring(1).toUpperCase() + "FF";
-            rightColorHexInput.value = hexValue;
-            updateGradient();
-        });
-
-
-        leftColorHexInput.addEventListener('input', () => {
-            let val = leftColorHexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
-            if (val.length > 8) {
-                val = val.substring(0, 8);
+        removeGradientButton.addEventListener('click', () => {
+            if (gradientCount > 2) {
+                gradientCount--;
+                gradientCountSpan.textContent = gradientCount;
+                updateColorInputs();
+                updateGradient();
             }
-            leftColorHexInput.value = val;
-
-            const rgb = hexToRgb("#" + val.substring(0, 6));
-            if (rgb) {
-                leftColorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
-            }
-            updateGradient();
-
-        });
-
-        rightColorHexInput.addEventListener('input', () => {
-            let val = rightColorHexInput.value.toUpperCase().replace(/[^0-9A-F]/g, '');
-            if (val.length > 8) {
-                val = val.substring(0, 8);
-            }
-            rightColorHexInput.value = val;
-            const rgb = hexToRgb("#" + val.substring(0, 6));
-            if (rgb) {
-                rightColorPicker.value = "#" + rgbToHex(rgb.r, rgb.g, rgb.b);
-            }
-            updateGradient();
         });
 
         inputText.addEventListener('input', updateGradient);
@@ -307,7 +403,8 @@
                 });
         });
 
-        updateGradient();
+        updateColorInputs();
+        updateGradient(); // Initial gradient
     </script>
 </body>
 </html>
