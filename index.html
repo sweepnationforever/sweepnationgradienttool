@@ -155,38 +155,64 @@
             font-size: 0.8em;
             color: #aaa;
         }
-      .gradient-controls {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-        justify-content: flex-end; /* Align to the right */
-    }
+       .gradient-controls {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
 
-    .gradient-controls button {
-        background-color: #3b3b3b;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 30px;
-        height: 30px;
-        cursor: pointer;
-        font-size: 1.2em;
-        margin: 0 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .gradient-controls button:hover {
-        background-color: #454545;
-    }
-
-    .gradient-controls span {
-        margin: 0 10px;
-        font-size: 1.1em;
-        font-weight: bold;
-    }
-
+        .controls-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        
+        .gradient-controls button {
+            background-color: #3b3b3b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin: 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gradient-controls button:hover {
+            background-color: #454545;
+        }
+        
+        .gradient-controls span {
+            margin: 0 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+          .randomise-container {
+              display: flex;
+              align-items: center;
+              margin-right: 10px;
+          }
+        
+        #randomiseAllButton {
+            background-color: #3b3b3b;
+            color: white;
+            border: none;
+            padding: 8px 66px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        
+        #randomiseAllButton:hover{
+            background-color: #454545;
+        }
     </style>
 </head>
 <body>
@@ -194,13 +220,17 @@
         <h1>sweepnation gradient tool</h1>
 
         <div class="gradient-controls">
-            <button id="removeGradient">-</button>
-            <span id="gradientCount">2</span>
-            <button id="addGradient">+</button>
+            <div class="randomise-container">
+                <button id="randomiseAllButton">random gradients</button>
+            </div>
+            <div class="controls-wrapper">
+                <button id="removeGradient">-</button>
+                <span id="gradientCount">2</span>
+                <button id="addGradient">+</button>
+            </div>
         </div>
 
         <div id="colorInputs">
-            <!-- Color inputs will be dynamically generated here -->
         </div>
 
         <div class="input-group">
@@ -225,6 +255,7 @@
       const gradientOutputText = document.getElementById('gradientOutputText');
       const previewDiv = document.getElementById('preview');
       const copyButton = document.querySelector('.copy-button');
+      const randomiseAllButton = document.getElementById('randomiseAllButton');
       let gradientCount = 2;
 
       function componentToHex(c) {
@@ -400,7 +431,16 @@
                 });
         });
 
-        updateColorInputs(); //initial
+        randomiseAllButton.addEventListener('click', () => {
+            for (let i = 0; i < gradientCount; i++) {
+                const randomColor = generateRandomHexColor();
+                document.getElementById(`color${i}`).value = randomColor;
+                document.getElementById(`colorHex${i}`).value = randomColor.substring(1).toUpperCase() + 'FF';
+            }
+            updateGradient();
+        });
+
+        updateColorInputs();
 
     </script>
 </body>
